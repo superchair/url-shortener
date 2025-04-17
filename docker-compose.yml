@@ -1,0 +1,36 @@
+name: url-shortener-service
+services:
+  database:
+    container_name: url-shortener-database
+    image: postgres:15.3
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+    volumes:
+      - database-vol:/var/lib/postgresql/data
+      - ./app/webservice/conf/postgres:/docker-entrypoint-initdb.d
+    networks:
+      - mobials
+    environment:
+      - POSTGRES_PASSWORD=passwd
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - DB_DRIVE=pdo_pgsql
+      - DB_HOST=url-shortener-database
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=passwd
+      - DB_NAME=postgres
+
+volumes:
+  database-vol:
+    name: url-shortener-database
+
+networks:
+  # shared network
+  mobials:
+    name: mobials
+    external: true
