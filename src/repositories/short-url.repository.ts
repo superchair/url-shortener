@@ -22,7 +22,7 @@ export class ShortUrlEntity {
 }
 
 @Injectable()
-export class UserRepository {
+export class ShortUrlRepository {
   constructor(
     @InjectRepository(ShortUrlEntity)
     private readonly repo: Repository<ShortUrlEntity>

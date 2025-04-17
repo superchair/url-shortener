@@ -1,5 +1,5 @@
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs'
-import { UserRepository } from '../repositories/short-url.repository'
+import { ShortUrlRepository } from '../repositories/short-url.repository'
 import { CreateShortUrlCommand } from './create-short-url.command'
 import { ShortUrlAggregate } from '../aggregates/short-url.aggregate'
 
@@ -8,7 +8,7 @@ export class CreateShortUrlHandler
   implements ICommandHandler<CreateShortUrlCommand>
 {
   constructor(
-    private readonly repo: UserRepository,
+    private readonly repo: ShortUrlRepository,
     private readonly eventBus: EventBus
   ) {}
 
