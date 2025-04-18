@@ -1,25 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import {
-  Column,
-  Entity,
-  EntityManager,
-  PrimaryColumn,
-  Repository,
-} from 'typeorm'
+import { EntityManager, Repository } from 'typeorm'
 import { ShortUrlAggregate } from '../aggregates/short-url.aggregate'
-
-@Entity('users')
-export class ShortUrlEntity {
-  @PrimaryColumn('uuid')
-  id: string | null
-
-  @Column()
-  name: string
-
-  @Column({ length: 10 })
-  phoneNumber: string
-}
+import { ShortUrlEntity } from '../entities/short-url.entity'
 
 @Injectable()
 export class ShortUrlRepository {
@@ -28,7 +11,28 @@ export class ShortUrlRepository {
     private readonly repo: Repository<ShortUrlEntity>
   ) {}
 
-  async save(
+  async insert(
+    newShortUrl: {
+      name: string
+      phoneNumber: string
+    },
+    manager?: EntityManager
+  ): Promise<ShortUrlAggregate> {
+    const entity = new ShortUrlEntity()
+    entity.name = newShortUrl.name
+    entity.phoneNumber = newShortUrl.phoneNumber
+
+    const repo = manager ? manager.getRepository(ShortUrlEntity) : this.repo
+    const createdEntity = await repo.save(entity)
+
+    return ShortUrlAggregate.create(
+      createdEntity.id,
+      createdEntity.name,
+      createdEntity.phoneNumber
+    )
+  }
+
+  async update(
     user: ShortUrlAggregate,
     manager?: EntityManager
   ): Promise<ShortUrlAggregate> {
@@ -38,12 +42,9 @@ export class ShortUrlRepository {
     entity.phoneNumber = user.getPhoneNumber()
     const repo = manager ? manager.getRepository(ShortUrlEntity) : this.repo
     const createdEntity = await repo.save(entity)
-
-    return user.rehydrate(
-      createdEntity.id,
-      createdEntity.name,
-      createdEntity.phoneNumber
-    )
+    return user
+      .changeName(createdEntity.name)
+      .changePhoneNumber(createdEntity.phoneNumber)
   }
 
   async findById(id: string): Promise<ShortUrlAggregate | null> {

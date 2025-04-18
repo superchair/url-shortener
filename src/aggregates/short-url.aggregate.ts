@@ -1,8 +1,5 @@
 import { AggregateRoot } from '@nestjs/cqrs'
-
-export class ShortUrlCreatedEvent {
-  constructor(private readonly shortUrl: ShortUrlAggregate) {}
-}
+import { ShortUrlCreatedEvent } from '../events/short-url-created.event'
 
 export class ShortUrlUpdatedEvent {
   constructor(private readonly shortUrl: ShortUrlAggregate) {}
@@ -14,22 +11,15 @@ export class ShortUrlDeletedEvent {
 
 export class ShortUrlAggregate extends AggregateRoot {
   private constructor(
-    private id: string | null,
+    private readonly id: string,
     private name: string,
     private phoneNumber: string
   ) {
     super()
   }
 
-  rehydrate(id: string | null, name: string, phoneNumber: string): this {
-    this.id = id
-    this.name = name
-    this.phoneNumber = phoneNumber
-    return this
-  }
-
   static create(
-    id: string | null,
+    id: string,
     name: string,
     phoneNumber: string
   ): ShortUrlAggregate {
@@ -38,27 +28,23 @@ export class ShortUrlAggregate extends AggregateRoot {
     return shortUrlAggregate
   }
 
-  changeId(newId: string | null) {
-    // TODO: validate newId is UUID
-
-    this.id = newId
-    this.apply(new ShortUrlUpdatedEvent(this))
+  changeName(newName: string): this {
+    if (newName !== this.name) {
+      this.name = newName
+      this.apply(new ShortUrlUpdatedEvent(this))
+    }
     return this
   }
 
-  changeName(newName: string) {
-    this.name = newName
-    this.apply(new ShortUrlUpdatedEvent(this))
-    return this
-  }
-
-  changePhoneNumber(newPhoneNumber: string) {
+  changePhoneNumber(newPhoneNumber: string): this {
     if (!/^\d{10}$/.test(newPhoneNumber)) {
       throw new Error('Phone number must be 10 digits')
     }
 
-    this.phoneNumber = newPhoneNumber
-    this.apply(new ShortUrlUpdatedEvent(this))
+    if (newPhoneNumber !== this.phoneNumber) {
+      this.phoneNumber = newPhoneNumber
+      this.apply(new ShortUrlUpdatedEvent(this))
+    }
     return this
   }
 
@@ -66,7 +52,7 @@ export class ShortUrlAggregate extends AggregateRoot {
     this.apply(new ShortUrlDeletedEvent(this))
   }
 
-  getId(): string | null {
+  getId(): string {
     return this.id
   }
 

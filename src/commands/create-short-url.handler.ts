@@ -1,7 +1,6 @@
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs'
 import { ShortUrlRepository } from '../repositories/short-url.repository'
 import { CreateShortUrlCommand } from './create-short-url.command'
-import { ShortUrlAggregate } from '../aggregates/short-url.aggregate'
 
 @CommandHandler(CreateShortUrlCommand)
 export class CreateShortUrlHandler
@@ -13,13 +12,14 @@ export class CreateShortUrlHandler
   ) {}
 
   async execute(command: CreateShortUrlCommand) {
-    const user = await this.repo.save(
-      ShortUrlAggregate.create(null, command.name, command.phoneNumber)
-    )
+    const shortUrl = await this.repo.insert({
+      name: command.name,
+      phoneNumber: command.phoneNumber,
+    })
 
-    this.eventBus.publishAll(user.getUncommittedEvents())
-    user.commit()
+    this.eventBus.publishAll(shortUrl.getUncommittedEvents())
+    shortUrl.commit()
 
-    return user
+    return shortUrl
   }
 }
