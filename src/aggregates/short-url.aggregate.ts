@@ -1,13 +1,7 @@
 import { AggregateRoot } from '@nestjs/cqrs'
 import { ShortUrlCreatedEvent } from '../events/short-url-created.event'
-
-export class ShortUrlUpdatedEvent {
-  constructor(private readonly shortUrl: ShortUrlAggregate) {}
-}
-
-export class ShortUrlDeletedEvent {
-  constructor(private readonly shortUrl: ShortUrlAggregate) {}
-}
+import { ShortUrlUpdatedEvent } from '../events/short-url-updated.event'
+import { ShortUrlDeletedEvent } from '../events/short-url-deleted.event'
 
 export class ShortUrlAggregate extends AggregateRoot {
   private constructor(

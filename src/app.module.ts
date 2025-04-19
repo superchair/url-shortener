@@ -8,7 +8,7 @@ import { ShortUrlRepository } from './repositories/short-url.repository'
 import { CqrsModule } from '@nestjs/cqrs'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ShortUrlEntity } from './entities/short-url.entity'
-import { OnShortUrlCreatedHandler } from './events/on-short-url-created.handler'
+import { OnShortUrlChangedHandler } from './events/log-short-url-change.event'
 
 @Module({
   imports: [
@@ -46,9 +46,13 @@ import { OnShortUrlCreatedHandler } from './events/on-short-url-created.handler'
   controllers: [ShortUrlController],
   providers: [
     AppService,
-    CreateShortUrlHandler,
     ShortUrlRepository,
-    OnShortUrlCreatedHandler,
+
+    // command handlers
+    CreateShortUrlHandler,
+
+    // event handlers
+    OnShortUrlChangedHandler,
   ],
 })
 export class AppModule {}

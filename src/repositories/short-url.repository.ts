@@ -33,16 +33,16 @@ export class ShortUrlRepository {
   }
 
   async update(
-    user: ShortUrlAggregate,
+    shortUrlAggregate: ShortUrlAggregate,
     manager?: EntityManager
   ): Promise<ShortUrlAggregate> {
     const entity = new ShortUrlEntity()
-    entity.id = user.getId()
-    entity.name = user.getName()
-    entity.phoneNumber = user.getPhoneNumber()
+    entity.id = shortUrlAggregate.getId()
+    entity.name = shortUrlAggregate.getName()
+    entity.phoneNumber = shortUrlAggregate.getPhoneNumber()
     const repo = manager ? manager.getRepository(ShortUrlEntity) : this.repo
     const createdEntity = await repo.save(entity)
-    return user
+    return shortUrlAggregate
       .changeName(createdEntity.name)
       .changePhoneNumber(createdEntity.phoneNumber)
   }
