@@ -5,13 +5,13 @@ import { ShortUrlUpdatedEvent } from './short-url-updated.event'
 import { ShortUrlDeletedEvent } from './short-url-deleted.event'
 
 @EventsHandler(ShortUrlCreatedEvent, ShortUrlUpdatedEvent, ShortUrlDeletedEvent)
-export class OnShortUrlChangedHandler
+export class LogShortUrlChanged
   implements
     IEventHandler<
       ShortUrlCreatedEvent | ShortUrlUpdatedEvent | ShortUrlDeletedEvent
     >
 {
-  private readonly logger = new Logger(OnShortUrlChangedHandler.name)
+  private readonly logger = new Logger(LogShortUrlChanged.name)
 
   handle(
     event: ShortUrlCreatedEvent | ShortUrlUpdatedEvent | ShortUrlDeletedEvent

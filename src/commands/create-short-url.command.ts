@@ -1,6 +1,5 @@
+import { FullUrlDto } from '../dtos/full-urld.dto'
+
 export class CreateShortUrlCommand {
-  constructor(
-    public readonly name: string,
-    public readonly phoneNumber: string
-  ) {}
+  constructor(public readonly fullUrlDto: FullUrlDto) {}
 }

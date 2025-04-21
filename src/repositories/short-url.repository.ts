@@ -13,22 +13,24 @@ export class ShortUrlRepository {
 
   async insert(
     newShortUrl: {
-      name: string
-      phoneNumber: string
+      fullUrl: string
+      shortCode: string
     },
     manager?: EntityManager
   ): Promise<ShortUrlAggregate> {
     const entity = new ShortUrlEntity()
-    entity.name = newShortUrl.name
-    entity.phoneNumber = newShortUrl.phoneNumber
+    entity.fullUrl = newShortUrl.fullUrl
+    entity.shortCode = newShortUrl.shortCode
+    entity.createdAt = new Date()
+    entity.updatedAt = new Date()
 
     const repo = manager ? manager.getRepository(ShortUrlEntity) : this.repo
     const createdEntity = await repo.save(entity)
 
     return ShortUrlAggregate.create(
       createdEntity.id,
-      createdEntity.name,
-      createdEntity.phoneNumber
+      createdEntity.fullUrl,
+      createdEntity.shortCode
     )
   }
 
@@ -50,7 +52,14 @@ export class ShortUrlRepository {
   async findById(id: string): Promise<ShortUrlAggregate | null> {
     const entity = await this.repo.findOne({ where: { id } })
     return entity
-      ? ShortUrlAggregate.create(entity.id, entity.name, entity.phoneNumber)
+      ? ShortUrlAggregate.create(entity.id, entity.fullUlr, entity.shortCode)
+      : null
+  }
+
+  async findByShortCode(shortCode: string): Promise<ShortUrlAggregate | null> {
+    const entity = await this.repo.findOne({ where: { shortCode } })
+    return entity
+      ? ShortUrlAggregate.create(entity.id, entity.fullUrl, entity.shortCode)
       : null
   }
 

@@ -8,7 +8,8 @@ import { ShortUrlRepository } from './repositories/short-url.repository'
 import { CqrsModule } from '@nestjs/cqrs'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ShortUrlEntity } from './entities/short-url.entity'
-import { OnShortUrlChangedHandler } from './events/log-short-url-change.event'
+import { LogShortUrlChanged } from './events/log-short-url-changed.handler'
+import { SendKafkaUrlCreated } from './events/send-kafka-url-created.handler'
 
 @Module({
   imports: [
@@ -52,7 +53,8 @@ import { OnShortUrlChangedHandler } from './events/log-short-url-change.event'
     CreateShortUrlHandler,
 
     // event handlers
-    OnShortUrlChangedHandler,
+    LogShortUrlChanged,
+    SendKafkaUrlCreated,
   ],
 })
 export class AppModule {}

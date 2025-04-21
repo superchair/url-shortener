@@ -6,8 +6,8 @@ import { ShortUrlDeletedEvent } from '../events/short-url-deleted.event'
 export class ShortUrlAggregate extends AggregateRoot {
   private constructor(
     private readonly id: string,
-    private name: string,
-    private phoneNumber: string
+    private fullUrl: string,
+    private readonly shortUrl: string
   ) {
     super()
   }

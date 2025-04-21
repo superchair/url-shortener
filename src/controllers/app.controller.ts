@@ -1,15 +1,8 @@
-import { Body, Controller, Post } from '@nestjs/common'
+import { Body, Controller, Param, Post, Put } from '@nestjs/common'
 import { CommandBus } from '@nestjs/cqrs'
 import { CreateShortUrlCommand } from '../commands/create-short-url.command'
-import { ApiProperty } from '@nestjs/swagger'
-
-class CreateShortUrlBody {
-  @ApiProperty()
-  name: string
-
-  @ApiProperty()
-  phoneNumber: string
-}
+import { FullUrlDto } from '../dtos/full-urld.dto'
+import { UpdateShortUrlCommand } from '../commands/update-short-url.command'
 
 @Controller({
   version: '1',
@@ -19,8 +12,12 @@ export class ShortUrlController {
   constructor(private readonly commandBus: CommandBus) {}
 
   @Post()
-  create(@Body() body: CreateShortUrlBody) {
-    const { name, phoneNumber } = body
-    return this.commandBus.execute(new CreateShortUrlCommand(name, phoneNumber))
+  create(@Body() body: FullUrlDto) {
+    return this.commandBus.execute(new CreateShortUrlCommand(body))
+  }
+
+  @Put(':shortCode')
+  update(@Param(':shortCode') shortCode: string, @Body() body: FullUrlDto) {
+    return this.commandBus.execute(new UpdateShortUrlCommand(shortCode, body))
   }
 }

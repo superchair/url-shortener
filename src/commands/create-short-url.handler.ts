@@ -12,14 +12,16 @@ export class CreateShortUrlHandler
   ) {}
 
   async execute(command: CreateShortUrlCommand) {
-    const shortUrl = await this.repo.insert({
-      name: command.name,
-      phoneNumber: command.phoneNumber,
+    const { fullUrl } = command.fullUrlDto
+    const shortCode = 'abcdefgh' // TODO: Generate a unique short code
+    const shortUrlAggregate = await this.repo.insert({
+      fullUrl,
+      shortCode,
     })
 
-    this.eventBus.publishAll(shortUrl.getUncommittedEvents())
-    shortUrl.commit()
+    this.eventBus.publishAll(shortUrlAggregate.getUncommittedEvents())
+    shortUrlAggregate.commit()
 
-    return shortUrl
+    return shortUrlAggregate
   }
 }

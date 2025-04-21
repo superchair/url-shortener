@@ -5,9 +5,19 @@ export class ShortUrlEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
-  @Column()
-  name: string
+  @Column({
+    unique: true,
+  })
+  fullUrl: string
 
-  @Column({ length: 10 })
-  phoneNumber: string
+  @Column({
+    unique: true,
+  })
+  shortCode: string
+
+  @Column()
+  createdAt: Date
+
+  @Column()
+  updatedAt: Date
 }
