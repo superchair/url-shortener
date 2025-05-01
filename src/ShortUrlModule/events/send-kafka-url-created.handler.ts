@@ -8,8 +8,9 @@ export class SendKafkaUrlCreated
 {
   private readonly logger = new Logger(SendKafkaUrlCreated.name)
   handle(event: ShortUrlCreatedEvent) {
+    const { id, shortCode, fullUrl } = event.shortUrl
     this.logger.log(
-      `SEND TO KAFKA: URL created: id=${event.shortUrl.getId()}, name=${event.shortUrl.getName()}, phone=${event.shortUrl.getPhoneNumber()}`
+      `SEND TO KAFKA: URL created: id=${id}, name=${fullUrl}, phone=${shortCode}`
     )
   }
 }

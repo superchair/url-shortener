@@ -1,19 +1,13 @@
 import { Module } from '@nestjs/common'
-import { AppService } from './app.service'
-import { ShortUrlController } from './controllers/app.controller'
+import { ShortUrlController } from './controllers/short-url.controller'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { RestAPIUtilities } from '@platform/rest-api-utils'
-import { CreateShortUrlHandler } from './commands/create-short-url.handler'
-import { ShortUrlRepository } from './repositories/short-url.repository'
-import { CqrsModule } from '@nestjs/cqrs'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { ShortUrlEntity } from './entities/short-url.entity'
-import { LogShortUrlChanged } from './events/log-short-url-changed.handler'
-import { SendKafkaUrlCreated } from './events/send-kafka-url-created.handler'
+import { ShortUrlModule } from './ShortUrlModule'
+import { RedirectsController } from './controllers/redirects.controller'
 
 @Module({
   imports: [
-    CqrsModule,
     ConfigModule.forRoot({
       envFilePath: ['.env'],
     }),
@@ -42,19 +36,8 @@ import { SendKafkaUrlCreated } from './events/send-kafka-url-created.handler'
         autoLoadEntities: true,
       }),
     }),
-    TypeOrmModule.forFeature([ShortUrlEntity]),
+    ShortUrlModule,
   ],
-  controllers: [ShortUrlController],
-  providers: [
-    AppService,
-    ShortUrlRepository,
-
-    // command handlers
-    CreateShortUrlHandler,
-
-    // event handlers
-    LogShortUrlChanged,
-    SendKafkaUrlCreated,
-  ],
+  controllers: [ShortUrlController, RedirectsController],
 })
 export class AppModule {}

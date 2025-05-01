@@ -34,20 +34,23 @@ export class LogShortUrlChanged
   }
 
   private handleShortUrlCreatedEvent(event: ShortUrlCreatedEvent) {
+    const { id, shortCode, fullUrl } = event.shortUrl
     this.logger.log(
-      `Short URL created: id=${event.shortUrl.getId()}, name=${event.shortUrl.getName()}, phone=${event.shortUrl.getPhoneNumber()}`
+      `Short URL created: id=${id}, url=${fullUrl}, short code=${shortCode}`
     )
   }
 
   private handleShortUrlUpdatedEvent(event: ShortUrlUpdatedEvent) {
+    const { id, shortCode, fullUrl } = event.shortUrl
     this.logger.log(
-      `Short URL updated: id=${event.shortUrl.getId()}, name=${event.shortUrl.getName()}, phone=${event.shortUrl.getPhoneNumber()}`
+      `Short URL updated: id=${id}, url=${fullUrl}, short code=${shortCode}`
     )
   }
 
   private handleShortUrlDeletedEvent(event: ShortUrlDeletedEvent) {
+    const { id, shortCode, fullUrl } = event.shortUrl
     this.logger.log(
-      `Short URL deleted: id=${event.shortUrl.getId()}, name=${event.shortUrl.getName()}, phone=${event.shortUrl.getPhoneNumber()}`
+      `Short URL deleted: id=${id}, url=${fullUrl}, short code=${shortCode}`
     )
   }
 }
