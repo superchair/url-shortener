@@ -23,6 +23,6 @@ export class UpdateShortUrlHandler
 
     shortUrlAggregate = this.publisher.mergeObjectContext(shortUrlAggregate)
     shortUrlAggregate.changeUrl(fullUrl)
-    await this.repo.save(shortUrlAggregate)
+    await this.repo.update(shortUrlAggregate)
   }
 }

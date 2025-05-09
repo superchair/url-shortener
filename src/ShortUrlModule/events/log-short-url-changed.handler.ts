@@ -26,10 +26,6 @@ export class LogShortUrlChanged
       case ShortUrlDeletedEvent:
         this.handleShortUrlDeletedEvent(event)
         break
-      default:
-        this.logger.error(
-          `Unexpected event type: ${event.constructor.name}. This should never happen.`
-        )
     }
   }
 

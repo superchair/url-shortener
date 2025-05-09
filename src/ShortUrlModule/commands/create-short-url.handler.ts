@@ -31,7 +31,7 @@ export class CreateShortUrlHandler
         this.logger.log(
           `Creating ShortUrl with full URL '${fullUrl}' and short code '${shortCode}'`
         )
-        await this.repo.save(shortUrlAggregate)
+        await this.repo.create(shortUrlAggregate)
         return shortUrlAggregate.shortCode
       } catch (error) {
         if (

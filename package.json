@@ -34,7 +34,7 @@
     "@nestjs/typeorm": "^11.0.0",
     "@platform/authentication": "^1.0.0",
     "@platform/rest-api-utils": "^1.0.0",
-    "nanoid": "^5.1.5",
+    "nanoid": "^3.3.11",
     "pg": "^8.14.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",

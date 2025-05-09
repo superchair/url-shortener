@@ -1,0 +1,4 @@
+app_name: "webservice-reference-service"
+bugsnag_key: "05664da59ca9a48721f69dadb9d5503c"
+execution_role_arn: "arn:aws:iam::456969868172:role/ecsTaskExecutionRole"
+ecs_iam_role: "arn:aws:iam::456969868172:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS"

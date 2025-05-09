@@ -8,10 +8,8 @@ async function bootstrap() {
 
   // swagger configuration
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('URL Shortener REST Service')
-    .setDescription(
-      'A service meant to minify URLs and provide redirects for them'
-    )
+    .setTitle('URL Shortener')
+    .setDescription('A service to minify URLs and provide redirects for them')
     .setVersion('1.0')
     .build()
   const documentFactory = () => SwaggerModule.createDocument(app, swaggerConfig)

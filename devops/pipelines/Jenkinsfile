@@ -1,0 +1,218 @@
+def runSemanticRelease() {
+  withCredentials([
+    usernamePassword(
+      credentialsId: 'platform_github_token',
+      usernameVariable: 'USERNAME',
+      passwordVariable: 'GITHUB_TOKEN'
+    )
+  ]) {
+    // uses GITHUB_TOKEN
+    sh('npx semantic-release')
+  }
+
+  return sh(
+      script: "node -p \"require('./package.json').version || ''\"",
+      returnStdout: true
+  ).trim()
+}
+
+def buildAndPublishDockerImage(
+  String version,
+  String environment,
+  String buildNumber,
+  String awsRegion,
+  String ecrRepoName
+) {
+  withCredentials([string(credentialsId: 'AWS_ACCOUNT_ID', variable: 'awsAccountId')]) {
+    withEnv([
+      "repoUrl=${awsAccountId}.dkr.ecr.${awsRegion}.amazonaws.com"
+    ]) {
+      // Build the Docker image and tag
+      sh('DOCKER_BUILDKIT=1 docker build ' + '--tag ' + repoUrl + '/' + ecrRepoName + ':' + version + ' --build-arg BUILD_NUMBER=' + buildNumber + ' --build-arg BUILD_VERSION=' + version + ' --target release .')
+      sh('docker tag ' + repoUrl + '/' + ecrRepoName + ':' + version + ' ' + repoUrl + '/' + ecrRepoName + ':' + environment)
+
+      // Login to ECR
+      sh('aws ecr get-login-password ' + '--region ' + awsRegion + ' | docker login --username AWS --password-stdin ' + repoUrl)
+
+      // Push the image to ECR (all tags)
+      sh('docker push ' + repoUrl + '/' + ecrRepoName + ' -a')
+    }
+  }
+}
+
+def deploy(
+  String environment,
+  String serviceName,
+  String awsRegion,
+  String ecsCluster
+) {
+  // Add SSH key for github
+  sh('mkdir -p ~/.ssh')
+  sh('aws ssm get-parameter --name "/azuredevops/deployer/private_key" --with-decryption --query "Parameter.Value" --output text > ~/.ssh/id_rsa')
+  sh('chmod 600 ~/.ssh/id_rsa')
+  sh('eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_rsa')
+  sh('ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts')
+
+  // run terragrunt from the correct directory
+  dir('devops/terragrunt/us-east-1/' + environment + '/ecs_webservice') {
+    sh 'terragrunt init'
+    sh 'terragrunt apply --auto-approve'
+  }
+
+  // force ECS redeployment
+  def service = "$environment-$serviceName"
+  sh('aws ecs update-service --cluster ' + ecsCluster + ' --service ' + service + ' --region ' + awsRegion + ' --force-new-deployment')
+  sh('aws ecs wait services-stable --cluster ' + ecsCluster + ' --services ' + service + ' --region ' + awsRegion)
+}
+
+pipeline {
+  agent {
+    label "ecs"
+  }
+  
+  tools {
+    nodejs('22.13.1')
+  }
+
+  environment {
+    SERVICE_NAME = 'url-shortener-service'
+    AWS_REGION = 'us-east-1'
+    AWS_ACCOUNT_ID = credentials('AWS_ACCOUNT_ID')
+  }
+
+  stages {
+    stage('NPM Login') {
+      steps {
+        sh('aws codeartifact login --tool npm --repository autoverify --domain autoverify --domain-owner $AWS_ACCOUNT_ID --region $AWS_REGION')
+      }
+    }
+
+    stage('Install Dependencies') {
+      steps{
+        sh('npm install')
+      }
+    }
+
+    stage('Test') {
+      steps {
+        sh('npm run test')
+        sh('npm run test:e2e')
+      }
+    }
+
+    stage('Build') {
+      steps {
+        sh('nest build')
+      }
+    }
+
+    stage('Release and Deploy') {
+      when {
+        not {
+          changeRequest()
+        }
+      }
+      parallel {
+        stage('Development') {
+          when {
+            triggeredBy cause: "UserIdCause"
+          }
+          environment {
+            deployEnv = 'dev'
+          }
+          steps {
+            script {
+              def version = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+              def ecrRepo = "platform/${env.SERVICE_NAME}"
+              echo "Build/Publish Docker Image with ${version}"
+              buildAndPublishDockerImage(
+                version,
+                env.deployEnv,
+                env.BUILD_NUMBER,
+                env.AWS_REGION,
+                ecrRepo
+              )
+
+              deploy(
+                env.deployEnv,
+                env.SERVICE_NAME,
+                env.AWS_REGION,
+                'staging-external-ecs'
+              )
+            }
+          }
+        }
+
+        stage('Staging') {
+          when {
+            not {
+              triggeredBy cause: "UserIdCause"
+            }
+            branch 'next'
+          }
+          environment {
+            deployEnv = 'staging'
+          }
+          steps {
+            script {
+              def version = runSemanticRelease()
+              def ecrRepo = "platform/${env.SERVICE_NAME}"
+
+              if (version != '') {
+                buildAndPublishDockerImage(
+                  version,
+                  env.deployEnv,
+                  env.BUILD_NUMBER,
+                  env.AWS_REGION,
+                  ecrRepo
+                )
+
+                deploy(
+                  env.deployEnv,
+                  env.SERVICE_NAME,
+                  env.AWS_REGION,
+                  'staging-external-ecs'
+                )
+              }
+            }
+          }
+        }
+
+        stage('Production') {
+          when {
+            not {
+              triggeredBy cause: "UserIdCause"
+            }
+            branch 'main'
+          }
+          environment {
+            deployEnv = 'prod'
+          }
+          steps {
+            script {
+              def version = runSemanticRelease()
+              def ecrRepo = "platform/${env.SERVICE_NAME}"
+
+              if (version != '') {
+                buildAndPublishDockerImage(
+                  version,
+                  env.deployEnv,
+                  env.BUILD_NUMBER,
+                  env.AWS_REGION,
+                  ecrRepo
+                )
+
+                deploy(
+                  env.deployEnv,
+                  env.SERVICE_NAME,
+                  env.AWS_REGION,
+                  'production-external-ecs'
+                )
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
